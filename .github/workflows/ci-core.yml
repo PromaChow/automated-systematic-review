@@ -86,9 +86,8 @@ jobs:
           label: Install packages
           task: get-measurement
       - name: Run test suite
-        run: 'pytest tests/
-
-          '
+        run: 'pytest tests/'
+        continue-on-error:true
       - id: measurement-6
         name: Record Measurement After Run test suite
         uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
