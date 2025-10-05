@@ -1,34 +1,92 @@
 name: test-frontend
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+
 jobs:
   compile-and-test:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Start Energy Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: start-measurement
       - uses: actions/checkout@v3
         with:
           submodules: recursive
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: '3.10'
       - uses: actions/setup-node@v3
         with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: "asreview/webapp/package-lock.json"
+          cache: npm
+          cache-dependency-path: asreview/webapp/package-lock.json
+          node-version: '20'
       - name: Get Tags
-        run: |
-          git fetch --prune --unshallow --tags
+        run: 'git fetch --prune --unshallow --tags
+
           git tag
+
+          '
+      - id: measurement-5
+        name: Record Measurement After Get Tags
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Get Tags
+          task: get-measurement
       - name: Compile assets
-        run: |
-          python setup.py compile_assets
+        run: 'python setup.py compile_assets
+
+          '
+      - id: measurement-7
+        name: Record Measurement After Compile assets
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Compile assets
+          task: get-measurement
       - name: Install pytest and package
-        run: |
-          pip install pytest pytest-random-order pytest-xdist
+        run: 'pip install pytest pytest-random-order pytest-xdist
+
           pip install --no-cache-dir .
+
+          '
+      - id: measurement-9
+        name: Record Measurement After Install pytest and package
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Install pytest and package
+          task: get-measurement
       - name: Test flask web app
-        run: |
-          pytest --random-order -n 6 asreview/webapp/tests
+        run: 'pytest --random-order -n 6 asreview/webapp/tests
+
+          '
+      - id: measurement-11
+        name: Record Measurement After Test flask web app
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Test flask web app
+          task: get-measurement
+      - id: display-measurement
+        name: Display Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: display-results
+      - name: Save Total Energy Consumption Data
+        run: echo '${{ steps.final-measurement.outputs.data-total-json }}' > total_energy_consumption.json
+      - name: Upload Energy Consumption Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: total-energy-consumption
+          path: total_energy_consumption.json
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest

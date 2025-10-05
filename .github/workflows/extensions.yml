@@ -1,69 +1,214 @@
 name: test-extensions
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+
 jobs:
   test-asreview-datatools:
     name: test-asreview-datatools
     runs-on: ubuntu-latest
     steps:
+      - name: Start Energy Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: start-measurement
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: '3.10'
       - name: Install packages
-        run: |
-          pip install pytest
+        run: 'pip install pytest
+
           pip install --no-cache-dir .
+
+          '
+      - id: measurement-4
+        name: Record Measurement After Install packages
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Install packages
+          task: get-measurement
       - name: Install extension
-        run: |
-          git clone https://github.com/asreview/asreview-datatools
+        run: 'git clone https://github.com/asreview/asreview-datatools
+
           cd asreview-datatools
+
           latestTag=$(git describe --tags `git rev-list --tags --max-count=1`)
+
           git checkout $latestTag
+
           pip install .
+
+          '
+      - id: measurement-6
+        name: Record Measurement After Install extension
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Install extension
+          task: get-measurement
       - name: Run test on asreview-datatools
-        run: |
-          pytest asreview-datatools/tests/
+        run: 'pytest asreview-datatools/tests/
+
+          '
+      - id: measurement-8
+        name: Record Measurement After Run test on asreview-datatools
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Run test on asreview-datatools
+          task: get-measurement
+      - id: display-measurement
+        name: Display Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: display-results
+      - name: Save Total Energy Consumption Data
+        run: echo '${{ steps.final-measurement.outputs.data-total-json }}' > total_energy_consumption.json
+      - name: Upload Energy Consumption Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: total-energy-consumption
+          path: total_energy_consumption.json
   test-asreview-insights:
     name: test-asreview-insights
     runs-on: ubuntu-latest
     steps:
+      - name: Start Energy Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: start-measurement
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: '3.10'
       - name: Install packages
-        run: |
-          pip install pytest
+        run: 'pip install pytest
+
           pip install --no-cache-dir .
+
+          '
+      - id: measurement-4
+        name: Record Measurement After Install packages
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Install packages
+          task: get-measurement
       - name: Install extension
-        run: |
-          git clone https://github.com/asreview/asreview-insights
+        run: 'git clone https://github.com/asreview/asreview-insights
+
           cd asreview-insights
+
           latestTag=$(git describe --tags `git rev-list --tags --max-count=1`)
+
           git checkout $latestTag
+
           pip install .
+
+          '
+      - id: measurement-6
+        name: Record Measurement After Install extension
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Install extension
+          task: get-measurement
       - name: Run test on asreview-insights
-        run: |
-          pytest asreview-insights/tests/
+        run: 'pytest asreview-insights/tests/
+
+          '
+      - id: measurement-8
+        name: Record Measurement After Run test on asreview-insights
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Run test on asreview-insights
+          task: get-measurement
+      - id: display-measurement
+        name: Display Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: display-results
+      - name: Save Total Energy Consumption Data
+        run: echo '${{ steps.final-measurement.outputs.data-total-json }}' > total_energy_consumption.json
+      - name: Upload Energy Consumption Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: total-energy-consumption
+          path: total_energy_consumption.json
   test-asreview-wordcloud:
     name: test-asreview-wordcloud
     runs-on: ubuntu-latest
     steps:
+      - name: Start Energy Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: start-measurement
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: '3.10'
       - name: Install packages
-        run: |
-          pip install pytest
+        run: 'pip install pytest
+
           pip install --no-cache-dir .
+
+          '
+      - id: measurement-4
+        name: Record Measurement After Install packages
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Install packages
+          task: get-measurement
       - name: Install extension
-        run: |
-          git clone https://github.com/asreview/asreview-wordcloud
+        run: 'git clone https://github.com/asreview/asreview-wordcloud
+
           cd asreview-wordcloud
+
           latestTag=$(git describe --tags `git rev-list --tags --max-count=1`)
+
           git checkout $latestTag
+
           pip install .
+
+          '
+      - id: measurement-6
+        name: Record Measurement After Install extension
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Install extension
+          task: get-measurement
       - name: Run test on asreview-wordcloud
-        run: |
-          pytest asreview-wordcloud/tests/
+        run: 'pytest asreview-wordcloud/tests/
+
+          '
+      - id: measurement-8
+        name: Record Measurement After Run test on asreview-wordcloud
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Run test on asreview-wordcloud
+          task: get-measurement
+      - id: display-measurement
+        name: Display Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: display-results
+      - name: Save Total Energy Consumption Data
+        run: echo '${{ steps.final-measurement.outputs.data-total-json }}' > total_energy_consumption.json
+      - name: Upload Energy Consumption Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: total-energy-consumption
+          path: total_energy_consumption.json

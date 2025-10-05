@@ -1,28 +1,27 @@
 name: Docker deployment
-
 on:
   push:
-    tags:
-      - "v*"
-  pull_request:
-    paths:
-      - "Dockerfile"
-      - ".github/workflows/docker.yml"
+    branches:
+      - main
 
 jobs:
   docker:
-    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+    runs-on: ubuntu-latest
     steps:
+      - name: Start Energy Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: start-measurement
       - name: Checkout
         uses: actions/checkout@v3
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
       - name: Build the image for testing
         uses: docker/build-push-action@v4
         with:
@@ -30,27 +29,47 @@ jobs:
           load: true
           tags: asreview/asreview:test
       - name: Test the built image
-        run: |
-          docker run asreview/asreview:test -h
+        run: 'docker run asreview/asreview:test -h
 
-      - name: Docker meta
-        id: meta
+          '
+      - id: measurement-6
+        name: Record Measurement After Test the built image
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Test the built image
+          task: get-measurement
+      - id: meta
         if: github.event_name != 'pull_request'
+        name: Docker meta
         uses: docker/metadata-action@v4
         with:
           images: ghcr.io/asreview/asreview
-      - name: Login to GitHub registry
-        if: github.event_name != 'pull_request'
+      - if: github.event_name != 'pull_request'
+        name: Login to GitHub registry
         uses: docker/login-action@v2
         with:
+          password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and, if it is not a pull request, push to Docker Hub
         uses: docker/build-push-action@v4
         with:
           context: .
+          labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - id: display-measurement
+        name: Display Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: display-results
+      - name: Save Total Energy Consumption Data
+        run: echo '${{ steps.final-measurement.outputs.data-total-json }}' > total_energy_consumption.json
+      - name: Upload Energy Consumption Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: total-energy-consumption
+          path: total_energy_consumption.json

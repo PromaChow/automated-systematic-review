@@ -1,38 +1,80 @@
 name: Deploy and release
-
 on:
-  release:
-    types: [published]
-
-permissions:
-  contents: read
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Start Energy Measurement
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: start-measurement
       - uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.x"
+          python-version: 3.x
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
+        run: 'python -m pip install --upgrade pip
+
           pip install setuptools build
+
+          '
+      - id: measurement-4
+        name: Record Measurement After Install dependencies
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Install dependencies
+          task: get-measurement
       - uses: actions/setup-node@v3
         with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: "asreview/webapp/package-lock.json"
+          cache: npm
+          cache-dependency-path: asreview/webapp/package-lock.json
+          node-version: '20'
       - name: Compile assets
-        run: |
-          python setup.py compile_assets
+        run: 'python setup.py compile_assets
+
+          '
+      - id: measurement-7
+        name: Record Measurement After Compile assets
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Compile assets
+          task: get-measurement
       - name: Build
-        run: |
-          python build
+        run: 'python build
+
+          '
+      - id: measurement-9
+        name: Record Measurement After Build
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          label: Build
+          task: get-measurement
       - name: Publish package
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          user: __token__
           password: ${{ secrets.pypi_password }}
+          user: __token__
+      - id: display-measurement
+        name: Display Energy Results
+        uses: green-coding-solutions/eco-ci-energy-estimation@862050e4f01f65b1436e5eca18ba4bd85562f0de
+        with:
+          json-output: true
+          task: display-results
+      - name: Save Total Energy Consumption Data
+        run: echo '${{ steps.final-measurement.outputs.data-total-json }}' > total_energy_consumption.json
+      - name: Upload Energy Consumption Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: total-energy-consumption
+          path: total_energy_consumption.json
+permissions:
+  contents: read
